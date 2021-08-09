@@ -1,4 +1,4 @@
-module github.com/kubewarden/safe-labels-policy
+module github.com/kubewarden/safe-annotations-policy
 
 go 1.15
 

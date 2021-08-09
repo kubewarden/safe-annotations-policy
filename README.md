@@ -1,29 +1,29 @@
  Continuous integration | License
  -----------------------|--------
-[![Unit Tests](https://github.com/kubewarden/safe-labels-policy/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/kubewarden/safe-labels-policy/actions/workflows/unit-tests.yml) [![end to end tests](https://github.com/kubewarden/safe-labels-policy/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/kubewarden/safe-labels-policy/actions/workflows/e2e-tests.yml) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Unit Tests](https://github.com/kubewarden/safe-annotations-policy/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/kubewarden/safe-annotations-policy/actions/workflows/unit-tests.yml) [![end to end tests](https://github.com/kubewarden/safe-annotations-policy/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/kubewarden/safe-annotations-policy/actions/workflows/e2e-tests.yml) | [![License: Apache 2.0](https://img.shields.io/badge/License-Apache2.0-brightgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # How the policy works
 
-This policy validates the labels of generic Kubernetes objects.
+This policy validates the annotations of generic Kubernetes objects.
 
-The policy rejects all the resources that use one or more labels on the
+The policy rejects all the resources that use one or more annotations on the
 deny list. The deny list is provided by at runtime via the policy configuration.
 
-The policy allows users to put constraints on specific labels. The constraints
+The policy allows users to put constraints on specific annotations. The constraints
 are expressed as regular expression and are provided via the policy settings.
 
 The policy settings look like that:
 
 ```yaml
-# List of labels that cannot be used
-denied_labels:
+# List of annotations that cannot be used
+denied_annotations:
 - foo
 - bar
 
-# Labels that are validate with user-defined RegExp
+# Annotations that are validate with user-defined RegExp
 # Failing to comply with the RegExp resuls in the object
 # being rejected
-constrained_labels:
+constrained_annotations:
   priority: "[123]"
   cost-center: "^cc-\\d+$"
 ```
@@ -39,7 +39,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: nginx
-  labels:
+  annotations:
     foo: hello world
 spec:
   containers:
@@ -54,7 +54,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: minimal-ingress
-  labels:
+  annotations:
     cost-center: cc-marketing
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
@@ -71,20 +71,20 @@ spec:
               number: 80
 ```
 
-Policy's settings can also be used to force certain labels to be specified,
+Policy's settings can also be used to force certain annotations to be specified,
 regardless of their contents:
 
 ```yaml
 # Policy's settings
 
-constrained_labels:
-  mandatory-label: ".*" # <- this label must be present, we don't care about its value
+constrained_annotations:
+  mandatory-annotation: ".*" # <- this annotation must be present, we don't care about its value
 ```
 
 # Obtain policy
 
 The policy is automatically published as an OCI artifact inside of
-[this](https://github.com/orgs/kubewarden/packages/container/package/policies%2Fsafe-labels)
+[this](https://github.com/orgs/kubewarden/packages/container/package/policies%2Fsafe-annotations)
 container registry.
 
 # Using the policy

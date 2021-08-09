@@ -12,8 +12,8 @@ func TestParseValidSettings(t *testing.T) {
 	{
 		"request": "doesn't matter here",
 		"settings": {
-			"denied_labels": [ "foo", "bar" ],
-			"constrained_labels": {
+			"denied_annotations": [ "foo", "bar" ],
+			"constrained_annotations": {
 				"cost-center": "cc-\\d+"
 			}
 		}
@@ -26,16 +26,16 @@ func TestParseValidSettings(t *testing.T) {
 		t.Errorf("Unexpected error %+v", err)
 	}
 
-	expected_denied_labels := []string{"foo", "bar"}
-	for _, exp := range expected_denied_labels {
-		if !settings.DeniedLabels.Contains(exp) {
+	expected_denied_annotations := []string{"foo", "bar"}
+	for _, exp := range expected_denied_annotations {
+		if !settings.DeniedAnnotations.Contains(exp) {
 			t.Errorf("Missing value %s", exp)
 		}
 	}
 
-	re, found := settings.ConstrainedLabels["cost-center"]
+	re, found := settings.ConstrainedAnnotations["cost-center"]
 	if !found {
-		t.Error("Didn't find the expected constrained label")
+		t.Error("Didn't find the expected constrained annotation")
 	}
 
 	expected_regexp := `cc-\d+`
@@ -50,8 +50,8 @@ func TestParseSettingsWithInvalidRegexp(t *testing.T) {
 	{
 		"request": "doesn't matter here",
 		"settings": {
-			"denied_labels": [ "foo", "bar" ],
-			"constrained_labels": {
+			"denied_annotations": [ "foo", "bar" ],
+			"constrained_annotations": {
 				"cost-center": "cc-[a+"
 			}
 		}
@@ -68,8 +68,8 @@ func TestParseSettingsWithInvalidRegexp(t *testing.T) {
 func TestDetectValidSettings(t *testing.T) {
 	request := `
 	{
-		"denied_labels": [ "foo", "bar" ],
-		"constrained_labels": {
+		"denied_annotations": [ "foo", "bar" ],
+		"constrained_annotations": {
 			"cost-center": "cc-\\d+"
 		}
 	}
@@ -93,8 +93,8 @@ func TestDetectValidSettings(t *testing.T) {
 func TestDetectNotValidSettingsDueToBrokenRegexp(t *testing.T) {
 	request := `
 	{
-		"denied_labels": [ "foo", "bar" ],
-		"constrained_labels": {
+		"denied_annotations": [ "foo", "bar" ],
+		"constrained_annotations": {
 			"cost-center": "cc-[a+"
 		}
 	}
@@ -119,11 +119,11 @@ func TestDetectNotValidSettingsDueToBrokenRegexp(t *testing.T) {
 	}
 }
 
-func TestDetectNotValidSettingsDueToConflictingLabels(t *testing.T) {
+func TestDetectNotValidSettingsDueToConflictingAnnotations(t *testing.T) {
 	request := `
 	{
-		"denied_labels": [ "foo", "bar", "cost-center" ],
-		"constrained_labels": {
+		"denied_annotations": [ "foo", "bar", "cost-center" ],
+		"constrained_annotations": {
 			"cost-center": ".*"
 		}
 	}
@@ -143,7 +143,7 @@ func TestDetectNotValidSettingsDueToConflictingLabels(t *testing.T) {
 		t.Error("Expected settings to not be valid")
 	}
 
-	if response.Message != "Provided settings are not valid: These labels cannot be constrained and denied at the same time: Set{cost-center}" {
+	if response.Message != "Provided settings are not valid: These annotations cannot be constrained and denied at the same time: Set{cost-center}" {
 		t.Errorf("Unexpected validation error message: %s", response.Message)
 	}
 }

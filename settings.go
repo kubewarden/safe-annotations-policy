@@ -46,8 +46,8 @@ func (r *RegularExpression) MarshalText() ([]byte, error) {
 }
 
 type Settings struct {
-	DeniedLabels      mapset.Set                    `json:"denied_labels"`
-	ConstrainedLabels map[string]*RegularExpression `json:"constrained_labels"`
+	DeniedAnnotations      mapset.Set                    `json:"denied_annotations"`
+	ConstrainedAnnotations map[string]*RegularExpression `json:"constrained_annotations"`
 }
 
 // Builds a new Settings instance starting from a validation
@@ -55,8 +55,8 @@ type Settings struct {
 // {
 //    "request": ...,
 //    "settings": {
-//       "denied_labels": [...],
-//       "constrained_labels": { ... }
+//       "denied_annotations": [...],
+//       "constrained_annotations": { ... }
 //    }
 // }
 func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
@@ -65,15 +65,15 @@ func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
 
 	return newSettings(
 		payload,
-		"settings.denied_labels",
-		"settings.constrained_labels")
+		"settings.denied_annotations",
+		"settings.constrained_annotations")
 }
 
 // Builds a new Settings instance starting from a Settings
 // payload:
 // {
 //    "denied_names": [ ... ],
-//    "constrained_labels": { ... }
+//    "constrained_annotations": { ... }
 // }
 func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
 	if !gjson.ValidBytes(payload) {
@@ -82,8 +82,8 @@ func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
 
 	return newSettings(
 		payload,
-		"denied_labels",
-		"constrained_labels")
+		"denied_annotations",
+		"constrained_annotations")
 }
 
 func newSettings(payload []byte, paths ...string) (Settings, error) {
@@ -93,13 +93,13 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 
 	data := gjson.GetManyBytes(payload, paths...)
 
-	deniedLabels := mapset.NewThreadUnsafeSet()
+	deniedAnnotations := mapset.NewThreadUnsafeSet()
 	data[0].ForEach(func(_, entry gjson.Result) bool {
-		deniedLabels.Add(entry.String())
+		deniedAnnotations.Add(entry.String())
 		return true
 	})
 
-	constrainedLabels := make(map[string]*RegularExpression)
+	constrainedAnnotations := make(map[string]*RegularExpression)
 	var err error
 	data[1].ForEach(func(key, value gjson.Result) bool {
 		var regExp *RegularExpression
@@ -108,7 +108,7 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 			return false
 		}
 
-		constrainedLabels[key.String()] = regExp
+		constrainedAnnotations[key.String()] = regExp
 		return true
 	})
 	if err != nil {
@@ -116,22 +116,22 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 	}
 
 	return Settings{
-		DeniedLabels:      deniedLabels,
-		ConstrainedLabels: constrainedLabels,
+		DeniedAnnotations:      deniedAnnotations,
+		ConstrainedAnnotations: constrainedAnnotations,
 	}, nil
 }
 
 func (s *Settings) Valid() (bool, error) {
-	constrainedLabels := mapset.NewThreadUnsafeSet()
+	constrainedAnnotations := mapset.NewThreadUnsafeSet()
 
-	for label := range s.ConstrainedLabels {
-		constrainedLabels.Add(label)
+	for annotation := range s.ConstrainedAnnotations {
+		constrainedAnnotations.Add(annotation)
 	}
 
-	constrainedAndDenied := constrainedLabels.Intersect(s.DeniedLabels)
+	constrainedAndDenied := constrainedAnnotations.Intersect(s.DeniedAnnotations)
 	if constrainedAndDenied.Cardinality() != 0 {
 		return false,
-			fmt.Errorf("These labels cannot be constrained and denied at the same time: %v", constrainedAndDenied)
+			fmt.Errorf("These annotations cannot be constrained and denied at the same time: %v", constrainedAndDenied)
 	}
 
 	return true, nil

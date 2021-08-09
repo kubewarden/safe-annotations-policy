@@ -6,28 +6,28 @@ rules:
 mutating: false
 contextAware: false
 annotations:
-  io.kubewarden.policy.author: Flavio Castelli
-  io.kubewarden.policy.url: https://github.com/kubewarden/safe-labels-policy
-  io.kubewarden.policy.source: https://github.com/kubewarden/safe-labels-policy
+  io.kubewarden.policy.author: Kubewarden authors
+  io.kubewarden.policy.url: https://github.com/kubewarden/safe-annotations-policy
+  io.kubewarden.policy.source: https://github.com/kubewarden/safe-annotations-policy
   io.kubewarden.policy.license: Apache-2.0
   io.kubewarden.policy.usage: |
-    This policy validates the labels of generic Kubernetes objects.
+    This policy validates the annotations of generic Kubernetes objects.
 
-    The policy rejects all the resources that use one or more labels on the deny list. The deny list is provided by at runtime via the policy configuration.
+    The policy rejects all the resources that use one or more annotations on the deny list. The deny list is provided by at runtime via the policy configuration.
 
-    The policy allows users to put constraints on specific labels. The constraints are expressed as regular expression and are provided via the policy settings.
+    The policy allows users to put constraints on specific annotations. The constraints are expressed as regular expression and are provided via the policy settings.
 
     The policy settings look like that:
     ```yaml
-    # List of labels that cannot be used
-    denied_labels:
+    # List of annotations that cannot be used
+    denied_annotations:
     - foo
     - bar
 
-    # Labels that are validate with user-defined RegExp
+    # Annotations that are validate with user-defined RegExp
     # Failing to comply with the RegExp resuls in the object
     # being rejected
-    constrained_labels:
+    constrained_annotations:
       priority: "[123]"
       cost-center: "^cc-\\d+$"
     ```

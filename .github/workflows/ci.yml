@@ -91,7 +91,7 @@ jobs:
     if: github.event.workflow_run.event != 'pull_request'
     runs-on: ubuntu-latest
     env:
-      OCI_TARGET: ghcr.io/kubewarden/policies/safe-labels
+      OCI_TARGET: ghcr.io/kubewarden/policies/safe-annotations
       KWCTL_VERSION: v0.1.9
     steps:
       - name: Download artifact

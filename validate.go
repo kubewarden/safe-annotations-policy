@@ -23,23 +23,23 @@ func validate(payload []byte) ([]byte, error) {
 
 	data := gjson.GetBytes(
 		payload,
-		"request.object.metadata.labels")
+		"request.object.metadata.annotations")
 
 	data.ForEach(func(key, value gjson.Result) bool {
-		label := key.String()
+		annotation := key.String()
 
-		if settings.DeniedLabels.Contains(label) {
-			err = fmt.Errorf("Label %s is on the deny list", label)
-			// stop iterating over labels
+		if settings.DeniedAnnotations.Contains(annotation) {
+			err = fmt.Errorf("Annotation %s is on the deny list", annotation)
+			// stop iterating over annotations
 			return false
 		}
 
-		regExp, found := settings.ConstrainedLabels[label]
+		regExp, found := settings.ConstrainedAnnotations[annotation]
 		if found {
-			// This is a constrained label
+			// This is a constrained annotation
 			if !regExp.Match([]byte(value.String())) {
-				err = fmt.Errorf("The value of %s doesn't pass user-defined constraint", label)
-				// stop iterating over labels
+				err = fmt.Errorf("The value of %s doesn't pass user-defined constraint", annotation)
+				// stop iterating over annotations
 				return false
 			}
 		}

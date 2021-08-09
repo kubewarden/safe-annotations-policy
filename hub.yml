@@ -1,14 +1,14 @@
-name: safe-labels
-description: A policy that validates Kubernetes' resource labels
-homepage: https://github.com/kubewarden/safe-labels-policy
+name: safe-annotations
+description: A policy that validates Kubernetes' resource annotations
+homepage: https://github.com/kubewarden/safe-annotations-policy
 author:
   name: Kubewarden devs
   homepage: https://github.com/kubewarden
 download:
-  registry: ghcr.io/kubewarden/policies/safe-labels:__TAG__
-  url: https://github.com/kubewarden/safe-labels-policy/releases/download/__TAG__/policy.wasm
+  registry: ghcr.io/kubewarden/policies/safe-annotations:__TAG__
+  url: https://github.com/kubewarden/safe-annotations-policy/releases/download/__TAG__/policy.wasm
 keywords:
-  - Labels
+  - Annotations
 resources:
   - '*'
 mutation: false
