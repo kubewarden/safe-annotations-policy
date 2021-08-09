@@ -1,4 +1,5 @@
 {
+  "uid": "1299d386-525b-4032-98ae-1949f69f9cfc",
   "kind": {
     "group": "networking.k8s.io",
     "kind": "Ingress",
@@ -10,6 +11,9 @@
     "metadata": {
       "name": "tls-example-ingress",
       "annotations": {
+        "cert-manager.io/cluster-issuer": "letsencrypt-production"
+      },
+      "labels": {
         "cc-center": "cc-1234a",
         "owner": "team-infra"
       }
