@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	kubewarden_testing "github.com/kubewarden/policy-sdk-go/testing"
 )
 
