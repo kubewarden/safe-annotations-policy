@@ -32,4 +32,4 @@ annotations:
       cost-center: "^cc-\\d+$"
     ```
 
-    **Note well:** the regular expression must be espressed using Go's syntax.
+    **Note well:** the regular expression must be expressed using Go's syntax.

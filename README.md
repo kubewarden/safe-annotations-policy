@@ -28,7 +28,7 @@ constrained_annotations:
   cost-center: "^cc-\\d+$"
 ```
 
-> **Note well:** the regular expression must be espressed
+> **Note well:** the regular expression must be expressed
 > using [Go's syntax](https://golang.org/pkg/regexp/syntax/).
 
 Given the configuration from above, the policy would reject the creation
