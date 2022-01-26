@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "accept when no settings are provided" {
-  run kwctl run policy.wasm -r test_data/ingress.json
+  run kwctl run annotated-policy.wasm -r test_data/ingress.json
 
   # this prints the output when one the checks below fails
   echo "output = ${output}"
@@ -12,7 +12,7 @@
 }
 
 @test "accept user defined constraint is respected" {
-  run kwctl run policy.wasm \
+  run kwctl run annotated-policy.wasm \
     -r test_data/ingress.json \
     --settings-json '{"constrained_annotations": {"owner": "^team-"}}'
   # this prints the output when one the checks below fails
@@ -24,7 +24,7 @@
 }
 
 @test "accept annotations are not on deny list" {
-  run kwctl run  policy.wasm \
+  run kwctl run  annotated-policy.wasm \
     -r test_data/ingress.json \
     --settings-json '{"denied_annotations": ["foo", "bar"]}'
   # this prints the output when one the checks below fails
@@ -36,7 +36,7 @@
 }
 
 @test "reject because annotation is on deny list" {
-  run kwctl run policy.wasm \
+  run kwctl run annotated-policy.wasm \
     -r test_data/ingress.json --settings-json '{"denied_annotations": ["foo", "owner"]}'
 
   # this prints the output when one the checks below fails
@@ -49,7 +49,7 @@
 }
 
 @test "reject because annotation doesn't pass validation constraint" {
-  run kwctl run policy.wasm \
+  run kwctl run annotated-policy.wasm \
     -r test_data/ingress.json \
     --settings-json '{"constrained_annotations": {"cc-center": "^cc-\\d+$"}}'
 
@@ -63,7 +63,7 @@
 }
 
 @test "fail settings validation because of conflicting annotations" {
-  run kwctl run policy.wasm \
+  run kwctl run annotated-policy.wasm \
     -r test_data/ingress.json \
     --settings-json '{"denied_annotations": ["foo", "cc-center"], "constrained_annotations": {"cc-center": "^cc-\\d+$"}}'
 
@@ -77,7 +77,7 @@
 }
 
 @test "fail settings validation because of invalid constraint" {
-  run kwctl run policy.wasm \
+  run kwctl run annotated-policy.wasm \
     -r test_data/ingress.json \
     --settings-json '{"constrained_annotations": {"cc-center": "^cc-[12$"}}'
 
