@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set"
 	"github.com/kubewarden/gjson"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
 
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // A wrapper around the standard regexp.Regexp struct
@@ -47,6 +48,7 @@ func (r *RegularExpression) MarshalText() ([]byte, error) {
 
 type Settings struct {
 	DeniedAnnotations      mapset.Set                    `json:"denied_annotations"`
+	MandatoryAnnotations   mapset.Set                    `json:"mandatory_annotations"`
 	ConstrainedAnnotations map[string]*RegularExpression `json:"constrained_annotations"`
 }
 
@@ -56,6 +58,7 @@ type Settings struct {
 //    "request": ...,
 //    "settings": {
 //       "denied_annotations": [...],
+//       "mandatory_annotations": [...],
 //       "constrained_annotations": { ... }
 //    }
 // }
@@ -66,6 +69,7 @@ func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
 	return newSettings(
 		payload,
 		"settings.denied_annotations",
+		"settings.mandatory_annotations",
 		"settings.constrained_annotations")
 }
 
@@ -83,11 +87,12 @@ func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
 	return newSettings(
 		payload,
 		"denied_annotations",
+		"mandatory_annotations",
 		"constrained_annotations")
 }
 
 func newSettings(payload []byte, paths ...string) (Settings, error) {
-	if len(paths) != 2 {
+	if len(paths) != 3 {
 		return Settings{}, fmt.Errorf("wrong number of json paths")
 	}
 
@@ -99,9 +104,15 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 		return true
 	})
 
+	mandatoryAnnotations := mapset.NewThreadUnsafeSet()
+	data[1].ForEach(func(_, entry gjson.Result) bool {
+		mandatoryAnnotations.Add(entry.String())
+		return true
+	})
+
 	constrainedAnnotations := make(map[string]*RegularExpression)
 	var err error
-	data[1].ForEach(func(key, value gjson.Result) bool {
+	data[2].ForEach(func(key, value gjson.Result) bool {
 		var regExp *RegularExpression
 		regExp, err = CompileRegularExpression(value.String())
 		if err != nil {
@@ -117,6 +128,7 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 
 	return Settings{
 		DeniedAnnotations:      deniedAnnotations,
+		MandatoryAnnotations:   mandatoryAnnotations,
 		ConstrainedAnnotations: constrainedAnnotations,
 	}, nil
 }
@@ -124,16 +136,45 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 func (s *Settings) Valid() (bool, error) {
 	constrainedAnnotations := mapset.NewThreadUnsafeSet()
 
-	for annotation := range s.ConstrainedAnnotations {
-		constrainedAnnotations.Add(annotation)
+	for annotations := range s.ConstrainedAnnotations {
+		constrainedAnnotations.Add(annotations)
 	}
+
+	errors := []string{}
 
 	constrainedAndDenied := constrainedAnnotations.Intersect(s.DeniedAnnotations)
 	if constrainedAndDenied.Cardinality() != 0 {
-		return false,
-			fmt.Errorf("These annotations cannot be constrained and denied at the same time: %v", constrainedAndDenied)
+		violations := []string{}
+		for _, v := range constrainedAndDenied.ToSlice() {
+			violations = append(violations, v.(string))
+		}
+		errors = append(
+			errors,
+			fmt.Sprintf(
+				"These annotations cannot be constrained and denied at the same time: %s",
+				strings.Join(violations, ","),
+			),
+		)
 	}
 
+	mandatoryAndDenied := s.MandatoryAnnotations.Intersect(s.DeniedAnnotations)
+	if mandatoryAndDenied.Cardinality() != 0 {
+		violations := []string{}
+		for _, v := range mandatoryAndDenied.ToSlice() {
+			violations = append(violations, v.(string))
+		}
+		errors = append(
+			errors,
+			fmt.Sprintf(
+				"These annotations cannot be mandatory and denied at the same time: %s",
+				strings.Join(violations, ","),
+			),
+		)
+	}
+
+	if len(errors) > 0 {
+		return false, fmt.Errorf("%s", strings.Join(errors, "; "))
+	}
 	return true, nil
 }
 

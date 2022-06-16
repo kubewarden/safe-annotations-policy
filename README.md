@@ -20,6 +20,10 @@ denied_annotations:
 - foo
 - bar
 
+# List of annotations that must be defined
+mandatory_annotations:
+  - cost-center
+
 # Annotations that are validate with user-defined RegExp
 # Failing to comply with the RegExp resuls in the object
 # being rejected
