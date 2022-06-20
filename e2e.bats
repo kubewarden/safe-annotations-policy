@@ -45,7 +45,7 @@
   # request rejected
   [ "$status" -eq 0 ]
   [ $(expr "$output" : '.*allowed.*false') -ne 0 ]
-  [ $(expr "$output" : '.*The following annotations are denied: owner.*') -ne 0 ]
+  [ $(expr "$output" : '.*The following annotations are not allowed: owner.*') -ne 0 ]
 }
 
 @test "reject because annotation doesn't pass validation constraint" {

@@ -143,7 +143,7 @@ func TestRejectionBecauseDeniedAnnotation(t *testing.T) {
 		t.Error("Unexpected accept response")
 	}
 
-	expected_message := "The following annotations are denied: owner"
+	expected_message := "The following annotations are not allowed: owner"
 	if response.Message != expected_message {
 		t.Errorf("Got '%s' instead of '%s'", response.Message, expected_message)
 	}
