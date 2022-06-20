@@ -17,8 +17,8 @@ annotations:
 
     The policy allows users to put constraints on specific annotations. The constraints are expressed as regular expression and are provided via the policy settings.
 
-    The policy allows users to require specific labels to be part of the resource.
-    The list of mandatory labels is provided at runtime via the policy configuration.
+    The policy allows users to require specific annotations to be part of the resource.
+    The list of mandatory annotations is provided at runtime via the policy configuration.
 
     The policy settings look like that:
     ```yaml
