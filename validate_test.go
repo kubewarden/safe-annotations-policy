@@ -190,7 +190,7 @@ func TestRejectionBecauseConstrainedAnnotationNotValid(t *testing.T) {
 	}
 }
 
-func TestRejectionBecauseConstrainedAnnotationMissing(t *testing.T) {
+func TestRejectionBecauseMandatoryAnnotationMissing(t *testing.T) {
 	settings := Settings{
 		DeniedAnnotations:      mapset.NewThreadUnsafeSet(),
 		MandatoryAnnotations:   mapset.NewThreadUnsafeSetFromSlice([]interface{}{"required"}),

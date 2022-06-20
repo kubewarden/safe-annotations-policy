@@ -58,7 +58,7 @@ func validate(payload []byte) ([]byte, error) {
 		error_msgs = append(
 			error_msgs,
 			fmt.Sprintf(
-				"The following annotations are denied: %s",
+				"The following annotations are not allowed: %s",
 				strings.Join(denied_annotations_violations, ","),
 			))
 	}
