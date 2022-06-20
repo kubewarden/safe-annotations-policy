@@ -13,6 +13,7 @@ func TestParseValidSettings(t *testing.T) {
 		"request": "doesn't matter here",
 		"settings": {
 			"denied_annotations": [ "foo", "bar" ],
+			"mandatory_annotations": ["owner"],
 			"constrained_annotations": {
 				"cost-center": "cc-\\d+"
 			}
@@ -29,7 +30,14 @@ func TestParseValidSettings(t *testing.T) {
 	expected_denied_annotations := []string{"foo", "bar"}
 	for _, exp := range expected_denied_annotations {
 		if !settings.DeniedAnnotations.Contains(exp) {
-			t.Errorf("Missing value %s", exp)
+			t.Errorf("Missing denied annotation %s", exp)
+		}
+	}
+
+	expected_mandatory_annotations := []string{"owner"}
+	for _, exp := range expected_mandatory_annotations {
+		if !settings.MandatoryAnnotations.Contains(exp) {
+			t.Errorf("Missing mandatory annotation %s", exp)
 		}
 	}
 
@@ -51,6 +59,7 @@ func TestParseSettingsWithInvalidRegexp(t *testing.T) {
 		"request": "doesn't matter here",
 		"settings": {
 			"denied_annotations": [ "foo", "bar" ],
+			"mandatory_annotations": ["owner"],
 			"constrained_annotations": {
 				"cost-center": "cc-[a+"
 			}
@@ -69,6 +78,7 @@ func TestDetectValidSettings(t *testing.T) {
 	request := `
 	{
 		"denied_annotations": [ "foo", "bar" ],
+		"mandatory_annotations": ["owner"],
 		"constrained_annotations": {
 			"cost-center": "cc-\\d+"
 		}
@@ -94,6 +104,7 @@ func TestDetectNotValidSettingsDueToBrokenRegexp(t *testing.T) {
 	request := `
 	{
 		"denied_annotations": [ "foo", "bar" ],
+		"mandatory_annotations": ["owner"],
 		"constrained_annotations": {
 			"cost-center": "cc-[a+"
 		}
@@ -119,10 +130,11 @@ func TestDetectNotValidSettingsDueToBrokenRegexp(t *testing.T) {
 	}
 }
 
-func TestDetectNotValidSettingsDueToConflictingAnnotations(t *testing.T) {
+func TestDetectNotValidSettingsDueToConflictingDeniedAndConstrainedAnnotations(t *testing.T) {
 	request := `
 	{
 		"denied_annotations": [ "foo", "bar", "cost-center" ],
+		"mandatory_annotations": ["owner"],
 		"constrained_annotations": {
 			"cost-center": ".*"
 		}
@@ -143,7 +155,37 @@ func TestDetectNotValidSettingsDueToConflictingAnnotations(t *testing.T) {
 		t.Error("Expected settings to not be valid")
 	}
 
-	if response.Message != "Provided settings are not valid: These annotations cannot be constrained and denied at the same time: Set{cost-center}" {
+	if response.Message != "Provided settings are not valid: These annotations cannot be constrained and denied at the same time: cost-center" {
+		t.Errorf("Unexpected validation error message: %s", response.Message)
+	}
+}
+
+func TestDetectNotValidSettingsDueToConflictingDeniedAndMandatoryAnnotations(t *testing.T) {
+	request := `
+	{
+		"denied_annotations": [ "foo", "bar", "owner" ],
+		"mandatory_annotations": ["owner"],
+		"constrained_annotations": {
+			"cost-center": ".*"
+		}
+	}
+	`
+	rawRequest := []byte(request)
+	responsePayload, err := validateSettings(rawRequest)
+	if err != nil {
+		t.Errorf("Unexpected error %+v", err)
+	}
+
+	var response kubewarden_testing.SettingsValidationResponse
+	if err := json.Unmarshal(responsePayload, &response); err != nil {
+		t.Errorf("Unexpected error: %+v", err)
+	}
+
+	if response.Valid {
+		t.Error("Expected settings to not be valid")
+	}
+
+	if response.Message != "Provided settings are not valid: These annotations cannot be mandatory and denied at the same time: owner" {
 		t.Errorf("Unexpected validation error message: %s", response.Message)
 	}
 }
