@@ -1,8 +1,6 @@
 # github.com/deckarep/golang-set v1.8.0
 ## explicit
 github.com/deckarep/golang-set
-# github.com/francoispqt/onelog v0.0.0-20190306043706-8c2bb31b10a4
-## explicit
 # github.com/kubewarden/gjson v1.7.2
 ## explicit
 github.com/kubewarden/gjson
