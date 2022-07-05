@@ -7,16 +7,21 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/kubewarden/gjson"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
+	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
+	easyjson "github.com/mailru/easyjson"
 )
 
 func validate(payload []byte) ([]byte, error) {
-	if !gjson.ValidBytes(payload) {
+	// Create a ValidationRequest instance from the incoming payload
+	validationRequest := kubewarden_protocol.ValidationRequest{}
+	err := easyjson.Unmarshal(payload, &validationRequest)
+	if err != nil {
 		return kubewarden.RejectRequest(
-			kubewarden.Message("Not a valid JSON document"),
+			kubewarden.Message(err.Error()),
 			kubewarden.Code(400))
 	}
 
-	settings, err := NewSettingsFromValidationReq(payload)
+	settings, err := NewSettingsFromValidationReq(validationRequest)
 	if err != nil {
 		return kubewarden.RejectRequest(
 			kubewarden.Message(err.Error()),
@@ -28,15 +33,15 @@ func validate(payload []byte) ([]byte, error) {
 		"request.object.metadata.annotations")
 
 	annotations := mapset.NewThreadUnsafeSet()
-	denied_annotations_violations := []string{}
-	constrained_annotations_violations := []string{}
+	deniedAnnotationsViolations := []string{}
+	constrainedAnnotationsViolations := []string{}
 
 	data.ForEach(func(key, value gjson.Result) bool {
 		annotation := key.String()
 		annotations.Add(annotation)
 
 		if settings.DeniedAnnotations.Contains(annotation) {
-			denied_annotations_violations = append(denied_annotations_violations, annotation)
+			deniedAnnotationsViolations = append(deniedAnnotationsViolations, annotation)
 			return true
 		}
 
@@ -44,7 +49,7 @@ func validate(payload []byte) ([]byte, error) {
 		if found {
 			// This is a constrained annotation
 			if !regExp.Match([]byte(value.String())) {
-				constrained_annotations_violations = append(constrained_annotations_violations, annotation)
+				constrainedAnnotationsViolations = append(constrainedAnnotationsViolations, annotation)
 				return true
 			}
 		}
@@ -52,44 +57,44 @@ func validate(payload []byte) ([]byte, error) {
 		return true
 	})
 
-	error_msgs := []string{}
+	errorMsgs := []string{}
 
-	if len(denied_annotations_violations) > 0 {
-		error_msgs = append(
-			error_msgs,
+	if len(deniedAnnotationsViolations) > 0 {
+		errorMsgs = append(
+			errorMsgs,
 			fmt.Sprintf(
 				"The following annotations are not allowed: %s",
-				strings.Join(denied_annotations_violations, ","),
+				strings.Join(deniedAnnotationsViolations, ","),
 			))
 	}
 
-	if len(constrained_annotations_violations) > 0 {
-		error_msgs = append(
-			error_msgs,
+	if len(constrainedAnnotationsViolations) > 0 {
+		errorMsgs = append(
+			errorMsgs,
 			fmt.Sprintf(
 				"The following annotations are violating user constraints: %s",
-				strings.Join(constrained_annotations_violations, ","),
+				strings.Join(constrainedAnnotationsViolations, ","),
 			))
 	}
 
-	mandatory_annotations_violations := settings.MandatoryAnnotations.Difference(annotations)
-	if mandatory_annotations_violations.Cardinality() > 0 {
+	mandatoryAnnotationsViolations := settings.MandatoryAnnotations.Difference(annotations)
+	if mandatoryAnnotationsViolations.Cardinality() > 0 {
 		violations := []string{}
-		for _, v := range mandatory_annotations_violations.ToSlice() {
+		for _, v := range mandatoryAnnotationsViolations.ToSlice() {
 			violations = append(violations, v.(string))
 		}
 
-		error_msgs = append(
-			error_msgs,
+		errorMsgs = append(
+			errorMsgs,
 			fmt.Sprintf(
 				"The following mandatory annotations are missing: %s",
 				strings.Join(violations, ","),
 			))
 	}
 
-	if len(error_msgs) > 0 {
+	if len(errorMsgs) > 0 {
 		return kubewarden.RejectRequest(
-			kubewarden.Message(strings.Join(error_msgs, ". ")),
+			kubewarden.Message(strings.Join(errorMsgs, ". ")),
 			kubewarden.NoCode)
 	}
 
