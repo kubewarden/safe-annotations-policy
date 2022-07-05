@@ -64,7 +64,7 @@
 
 @test "reject because a required annotation does not exist" {
   run kwctl run policy.wasm \
-    -r test_data/ingress.json --settings-json '{"mandatory_annotations": ["required"], "constrained_annotations": {"foo", ".*"}}'
+    -r test_data/ingress.json --settings-json '{"mandatory_annotations": ["required"], "constrained_annotations": {"foo": ".*"}}'
 
   # this prints the output when one the checks below fails
   echo "output = ${output}"
@@ -114,6 +114,6 @@
   # settings validation fails
   [ "$status" -eq 1 ]
   [ $(expr "$output" : '.*valid.*false') -ne 0 ]
-  [ $(expr "$output" : ".*Provided settings are not valid: error parsing regexp: missing closing ]: `[12$`.*") -ne 0 ]
+  [ $(expr "$output" : ".*Provided settings are not valid: Cannot compile regexp.*") -ne 0 ]
 }
 
