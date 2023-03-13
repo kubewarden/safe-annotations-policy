@@ -1,6 +1,8 @@
 # github.com/deckarep/golang-set v1.8.0
 ## explicit; go 1.17
 github.com/deckarep/golang-set
+# github.com/deckarep/golang-set/v2 v2.2.0
+## explicit; go 1.18
 # github.com/josharian/intern v1.0.0
 ## explicit; go 1.5
 github.com/josharian/intern
