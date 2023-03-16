@@ -1,19 +1,19 @@
 ---
-version: 0.2.2
+version: 0.2.3
 name: safe-annotations
 displayName: Safe Annotations
-createdAt: '2023-01-19T15:46:21+02:00'
+createdAt: '2023-03-16T13:38:50+00:00'
 description: A policy that validates Kubernetes' resource annotations
 license: Apache-2.0
 homeURL: https://github.com/kubewarden/safe-annotations-policy
 containersImages:
 - name: policy
-  image: ghcr.io/kubewarden/policies/safe-annotations:v0.2.2
+  image: ghcr.io/kubewarden/policies/safe-annotations:v0.2.3
 keywords:
 - annotations
 links:
 - name: policy
-  url: https://github.com/kubewarden/safe-annotations-policy/releases/download/v0.2.2/policy.wasm
+  url: https://github.com/kubewarden/safe-annotations-policy/releases/download/v0.2.3/policy.wasm
 - name: source
   url: https://github.com/kubewarden/safe-annotations-policy
 provider:
@@ -51,6 +51,13 @@ annotations:
       required: false
       type: array[
       variable: denied_annotations
+    - default: []
+      tooltip: A list of annotations that must be defined
+      group: Settings
+      label: Mandatory annotations
+      target: true
+      type: array[
+      variable: mandatory_annotations
     - default: []
       tooltip: Annotations that are validated with user-defined RegExp
       group: Settings

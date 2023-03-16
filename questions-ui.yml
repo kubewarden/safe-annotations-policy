@@ -19,6 +19,13 @@ questions:
   type: array[
   variable: denied_annotations
 - default: []
+  tooltip: A list of annotations that must be defined
+  group: Settings
+  label: Mandatory annotations
+  target: true
+  type: array[
+  variable: mandatory_annotations
+- default: []
   tooltip: Annotations that are validated with user-defined RegExp
   group: Settings
   label: Constrained annotations
