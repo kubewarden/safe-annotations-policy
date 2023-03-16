@@ -1,4 +1,7 @@
 SOURCE_FILES := $(shell find . -type f -name '*.go')
+# It's necessary to call cut because kwctl command does not handle version
+# starting with v.
+VERSION ?= $(shell git describe | cut -c2-)
 
 types_easyjson.go: types.go
 	docker run \
@@ -8,11 +11,24 @@ types_easyjson.go: types.go
 		golang:1.17-alpine ./hack/generate-easyjson.sh
 
 policy.wasm: $(SOURCE_FILES) go.mod go.sum types_easyjson.go
-	docker run --rm -v ${PWD}:/src -w /src tinygo/tinygo:0.24.0 tinygo build \
-		-o policy.wasm -target=wasi -no-debug .
+	docker run \
+		--rm \
+		-e GOFLAGS="-buildvcs=false" \
+		-v ${PWD}:/src \
+		-w /src tinygo/tinygo:0.23.0 \
+		tinygo build -o policy.wasm -target=wasi -no-debug .
 
-annotated-policy.wasm: policy.wasm metadata.yml
-	kwctl annotate -m metadata.yml -o annotated-policy.wasm policy.wasm
+artifacthub-pkg.yml: metadata.yml go.mod
+	$(warning If you are updating the artifacthub-pkg.yml file for a release, \
+		remember to set the VERSION variable with the proper value. \
+		To use the latest tag, use the following command:  \
+		make VERSION=$$(git describe --tags --abbrev=0 | cut -c2-) annotated-policy.wasm)
+	kwctl scaffold artifacthub \
+	    --metadata-path metadata.yml --version $(VERSION) \
+		--questions-path questions-ui.yml --output artifacthub-pkg.yml
+
+annotated-policy.wasm: policy.wasm metadata.yml artifacthub-pkg.yml
+	kwctl annotate -m metadata.yml -u README.md -o annotated-policy.wasm policy.wasm
 
 .PHONY: test
 test: types_easyjson.go
@@ -25,4 +41,4 @@ e2e-tests: annotated-policy.wasm
 .PHONY: clean
 clean:
 	go clean
-	rm -f policy.wasm annotated-policy.wasm
+	rm -f policy.wasm annotated-policy.wasm artifacthub-pkg.yml

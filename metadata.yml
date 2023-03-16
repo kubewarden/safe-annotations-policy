@@ -6,37 +6,15 @@ rules:
 mutating: false
 contextAware: false
 annotations:
-  io.kubewarden.policy.author: Kubewarden authors
+  # artifacthub specific
+  io.artifacthub.displayName: Safe Annotations
+  io.artifacthub.resources: "*"
+  io.artifacthub.keywords: annotations
+  io.kubewarden.policy.ociUrl: ghcr.io/kubewarden/policies/safe-annotations
+  # kubewarden specific:
+  io.kubewarden.policy.title: safe-annotations
+  io.kubewarden.policy.description: A policy that validates Kubernetes' resource annotations
+  io.kubewarden.policy.author: Kubewarden developers <cncf-kubewarden-maintainers@lists.cncf.io>
   io.kubewarden.policy.url: https://github.com/kubewarden/safe-annotations-policy
   io.kubewarden.policy.source: https://github.com/kubewarden/safe-annotations-policy
   io.kubewarden.policy.license: Apache-2.0
-  io.kubewarden.policy.usage: |
-    This policy validates the annotations of generic Kubernetes objects.
-
-    The policy rejects all the resources that use one or more annotations on the deny list. The deny list is provided by at runtime via the policy configuration.
-
-    The policy allows users to put constraints on specific annotations. The constraints are expressed as regular expression and are provided via the policy settings.
-
-    The policy allows users to require specific annotations to be part of the resource.
-    The list of mandatory annotations is provided at runtime via the policy configuration.
-
-    The policy settings look like that:
-    ```yaml
-    # List of annotations that cannot be used
-    denied_annotations:
-    - foo
-    - bar
-
-    # List of annotations that must be defined
-    mandatory_annotations:
-    - cost-center
-
-    # Annotations that are validate with user-defined RegExp
-    # Failing to comply with the RegExp resuls in the object
-    # being rejected
-    constrained_annotations:
-      priority: "[123]"
-      cost-center: "^cc-\\d+$"
-    ```
-
-    **Note well:** the regular expression must be expressed using Go's syntax.
