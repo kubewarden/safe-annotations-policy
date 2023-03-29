@@ -1,7 +1,7 @@
 package main
 
 import (
-	mapset "github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set/v2"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
 	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
 	easyjson "github.com/mailru/easyjson"
@@ -12,21 +12,22 @@ import (
 )
 
 type Settings struct {
-	DeniedAnnotations      mapset.Set                `json:"denied_annotations"`
-	MandatoryAnnotations   mapset.Set                `json:"mandatory_annotations"`
+	DeniedAnnotations      mapset.Set[string]        `json:"denied_annotations"`
+	MandatoryAnnotations   mapset.Set[string]        `json:"mandatory_annotations"`
 	ConstrainedAnnotations map[string]*regexp.Regexp `json:"constrained_annotations"`
 }
 
 // Builds a new Settings instance starting from a validation
 // request payload:
-// {
-//    "request": ...,
-//    "settings": {
-//       "denied_annotations": [...],
-//       "mandatory_annotations": [...],
-//       "constrained_annotations": { ... }
-//    }
-// }
+//
+//	{
+//	   "request": ...,
+//	   "settings": {
+//	      "denied_annotations": [...],
+//	      "mandatory_annotations": [...],
+//	      "constrained_annotations": { ... }
+//	   }
+//	}
 func NewSettingsFromValidationReq(validationReq kubewarden_protocol.ValidationRequest) (Settings, error) {
 	return newSettings(validationReq.Settings)
 }
@@ -38,12 +39,12 @@ func newSettings(settingsJson []byte) (Settings, error) {
 		return Settings{}, err
 	}
 
-	deniedAnnotations := mapset.NewThreadUnsafeSet()
+	deniedAnnotations := mapset.NewThreadUnsafeSet[string]()
 	for _, label := range basicSettings.DeniedAnnotations {
 		deniedAnnotations.Add(label)
 	}
 
-	mandatoryAnnotations := mapset.NewThreadUnsafeSet()
+	mandatoryAnnotations := mapset.NewThreadUnsafeSet[string]()
 	for _, label := range basicSettings.MandatoryAnnotations {
 		mandatoryAnnotations.Add(label)
 	}
@@ -65,7 +66,7 @@ func newSettings(settingsJson []byte) (Settings, error) {
 }
 
 func (s *Settings) Valid() (bool, error) {
-	constrainedAnnotations := mapset.NewThreadUnsafeSet()
+	constrainedAnnotations := mapset.NewThreadUnsafeSet[string]()
 
 	for annotations := range s.ConstrainedAnnotations {
 		constrainedAnnotations.Add(annotations)
@@ -75,10 +76,7 @@ func (s *Settings) Valid() (bool, error) {
 
 	constrainedAndDenied := constrainedAnnotations.Intersect(s.DeniedAnnotations)
 	if constrainedAndDenied.Cardinality() != 0 {
-		violations := []string{}
-		for _, v := range constrainedAndDenied.ToSlice() {
-			violations = append(violations, v.(string))
-		}
+		violations := constrainedAndDenied.ToSlice()
 		errors = append(
 			errors,
 			fmt.Sprintf(
@@ -90,10 +88,7 @@ func (s *Settings) Valid() (bool, error) {
 
 	mandatoryAndDenied := s.MandatoryAnnotations.Intersect(s.DeniedAnnotations)
 	if mandatoryAndDenied.Cardinality() != 0 {
-		violations := []string{}
-		for _, v := range mandatoryAndDenied.ToSlice() {
-			violations = append(violations, v.(string))
-		}
+		violations := mandatoryAndDenied.ToSlice()
 		errors = append(
 			errors,
 			fmt.Sprintf(

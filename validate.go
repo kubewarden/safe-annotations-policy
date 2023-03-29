@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	mapset "github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubewarden/gjson"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
 	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
@@ -32,7 +32,7 @@ func validate(payload []byte) ([]byte, error) {
 		payload,
 		"request.object.metadata.annotations")
 
-	annotations := mapset.NewThreadUnsafeSet()
+	annotations := mapset.NewThreadUnsafeSet[string]()
 	deniedAnnotationsViolations := []string{}
 	constrainedAnnotationsViolations := []string{}
 
@@ -79,10 +79,7 @@ func validate(payload []byte) ([]byte, error) {
 
 	mandatoryAnnotationsViolations := settings.MandatoryAnnotations.Difference(annotations)
 	if mandatoryAnnotationsViolations.Cardinality() > 0 {
-		violations := []string{}
-		for _, v := range mandatoryAnnotationsViolations.ToSlice() {
-			violations = append(violations, v.(string))
-		}
+		violations := mandatoryAnnotationsViolations.ToSlice()
 
 		errorMsgs = append(
 			errorMsgs,
