@@ -1,6 +1,6 @@
-# github.com/deckarep/golang-set v1.8.0
-## explicit; go 1.17
-github.com/deckarep/golang-set
+# github.com/deckarep/golang-set/v2 v2.3.0
+## explicit; go 1.18
+github.com/deckarep/golang-set/v2
 # github.com/go-openapi/strfmt v0.21.3 => github.com/kubewarden/strfmt v0.1.2
 ## explicit; go 1.17
 github.com/go-openapi/strfmt

@@ -2,7 +2,7 @@
 Open Source Initiative OSI - The MIT License (MIT):Licensing
 
 The MIT License (MIT)
-Copyright (c) 2013 Ralph Caraveo (deckarep@gmail.com)
+Copyright (c) 2013 - 2022 Ralph Caraveo (deckarep@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Package mapset implements a simple and generic set collection.
+// Package mapset implements a simple and  set collection.
 // Items stored within it are unordered and unique. It supports
 // typical set operations: membership testing, intersection, union,
 // difference, symmetric difference and cloning.
@@ -38,27 +38,31 @@ package mapset
 // Set is the primary interface provided by the mapset package.  It
 // represents an unordered set of data and a large number of
 // operations that can be applied to that set.
-type Set interface {
-	// Adds an element to the set. Returns whether
+type Set[T comparable] interface {
+	// Add adds an element to the set. Returns whether
 	// the item was added.
-	Add(i interface{}) bool
+	Add(val T) bool
 
-	// Returns the number of elements in the set.
+	// Append multiple elements to the set. Returns
+	// the number of elements added.
+	Append(val ...T) int
+
+	// Cardinality returns the number of elements in the set.
 	Cardinality() int
 
-	// Removes all elements from the set, leaving
+	// Clear removes all elements from the set, leaving
 	// the empty set.
 	Clear()
 
-	// Returns a clone of the set using the same
+	// Clone returns a clone of the set using the same
 	// implementation, duplicating all keys.
-	Clone() Set
+	Clone() Set[T]
 
-	// Returns whether the given items
+	// Contains returns whether the given items
 	// are all in the set.
-	Contains(i ...interface{}) bool
+	Contains(val ...T) bool
 
-	// Returns the difference between this set
+	// Difference returns the difference between this set
 	// and other. The returned set will contain
 	// all elements of this set that are not also
 	// elements of other.
@@ -67,9 +71,9 @@ type Set interface {
 	// must be of the same type as the receiver
 	// of the method. Otherwise, Difference will
 	// panic.
-	Difference(other Set) Set
+	Difference(other Set[T]) Set[T]
 
-	// Determines if two sets are equal to each
+	// Equal determines if two sets are equal to each
 	// other. If they have the same cardinality
 	// and contain the same elements, they are
 	// considered equal. The order in which
@@ -78,27 +82,27 @@ type Set interface {
 	// Note that the argument to Equal must be
 	// of the same type as the receiver of the
 	// method. Otherwise, Equal will panic.
-	Equal(other Set) bool
+	Equal(other Set[T]) bool
 
-	// Returns a new set containing only the elements
+	// Intersect returns a new set containing only the elements
 	// that exist only in both sets.
 	//
 	// Note that the argument to Intersect
 	// must be of the same type as the receiver
 	// of the method. Otherwise, Intersect will
 	// panic.
-	Intersect(other Set) Set
+	Intersect(other Set[T]) Set[T]
 
-	// Determines if every element in this set is in
+	// IsProperSubset determines if every element in this set is in
 	// the other set but the two sets are not equal.
 	//
 	// Note that the argument to IsProperSubset
 	// must be of the same type as the receiver
 	// of the method. Otherwise, IsProperSubset
 	// will panic.
-	IsProperSubset(other Set) bool
+	IsProperSubset(other Set[T]) bool
 
-	// Determines if every element in the other set
+	// IsProperSuperset determines if every element in the other set
 	// is in this set but the two sets are not
 	// equal.
 	//
@@ -106,112 +110,132 @@ type Set interface {
 	// must be of the same type as the receiver
 	// of the method. Otherwise, IsSuperset will
 	// panic.
-	IsProperSuperset(other Set) bool
+	IsProperSuperset(other Set[T]) bool
 
-	// Determines if every element in this set is in
+	// IsSubset determines if every element in this set is in
 	// the other set.
 	//
 	// Note that the argument to IsSubset
 	// must be of the same type as the receiver
 	// of the method. Otherwise, IsSubset will
 	// panic.
-	IsSubset(other Set) bool
+	IsSubset(other Set[T]) bool
 
-	// Determines if every element in the other set
+	// IsSuperset determines if every element in the other set
 	// is in this set.
 	//
 	// Note that the argument to IsSuperset
 	// must be of the same type as the receiver
 	// of the method. Otherwise, IsSuperset will
 	// panic.
-	IsSuperset(other Set) bool
+	IsSuperset(other Set[T]) bool
 
-	// Iterates over elements and executes the passed func against each element.
+	// Each iterates over elements and executes the passed func against each element.
 	// If passed func returns true, stop iteration at the time.
-	Each(func(interface{}) bool)
+	Each(func(T) bool)
 
-	// Returns a channel of elements that you can
+	// Iter returns a channel of elements that you can
 	// range over.
-	Iter() <-chan interface{}
+	Iter() <-chan T
 
-	// Returns an Iterator object that you can
+	// Iterator returns an Iterator object that you can
 	// use to range over the set.
-	Iterator() *Iterator
+	Iterator() *Iterator[T]
 
-	// Remove a single element from the set.
-	Remove(i interface{})
+	// Remove removes a single element from the set.
+	Remove(i T)
 
-	// Provides a convenient string representation
+	// RemoveAll removes multiple elements from the set.
+	RemoveAll(i ...T)
+
+	// String provides a convenient string representation
 	// of the current state of the set.
 	String() string
 
-	// Returns a new set with all elements which are
+	// SymmetricDifference returns a new set with all elements which are
 	// in either this set or the other set but not in both.
 	//
 	// Note that the argument to SymmetricDifference
 	// must be of the same type as the receiver
 	// of the method. Otherwise, SymmetricDifference
 	// will panic.
-	SymmetricDifference(other Set) Set
+	SymmetricDifference(other Set[T]) Set[T]
 
-	// Returns a new set with all elements in both sets.
+	// Union returns a new set with all elements in both sets.
 	//
 	// Note that the argument to Union must be of the
-
 	// same type as the receiver of the method.
 	// Otherwise, IsSuperset will panic.
-	Union(other Set) Set
+	Union(other Set[T]) Set[T]
 
 	// Pop removes and returns an arbitrary item from the set.
-	Pop() interface{}
+	Pop() (T, bool)
 
-	// Returns all subsets of a given set (Power Set).
-	PowerSet() Set
+	// ToSlice returns the members of the set as a slice.
+	ToSlice() []T
 
-	// Returns the Cartesian Product of two sets.
-	CartesianProduct(other Set) Set
+	// MarshalJSON will marshal the set into a JSON-based representation.
+	MarshalJSON() ([]byte, error)
 
-	// Returns the members of the set as a slice.
-	ToSlice() []interface{}
+	// UnmarshalJSON will unmarshal a JSON-based byte slice into a full Set datastructure.
+	// For this to work, set subtypes must implemented the Marshal/Unmarshal interface.
+	UnmarshalJSON(b []byte) error
 }
 
-// NewSet creates and returns a reference to an empty set.  Operations
-// on the resulting set are thread-safe.
-func NewSet(s ...interface{}) Set {
-	set := newThreadSafeSet()
-	for _, item := range s {
-		set.Add(item)
-	}
-	return &set
-}
-
-// NewSetWith creates and returns a new set with the given elements.
+// NewSet creates and returns a new set with the given elements.
 // Operations on the resulting set are thread-safe.
-func NewSetWith(elts ...interface{}) Set {
-	return NewSetFromSlice(elts)
-}
-
-// NewSetFromSlice creates and returns a reference to a set from an
-// existing slice.  Operations on the resulting set are thread-safe.
-func NewSetFromSlice(s []interface{}) Set {
-	a := NewSet(s...)
-	return a
-}
-
-// NewThreadUnsafeSet creates and returns a reference to an empty set.
-// Operations on the resulting set are not thread-safe.
-func NewThreadUnsafeSet() Set {
-	set := newThreadUnsafeSet()
-	return &set
-}
-
-// NewThreadUnsafeSetFromSlice creates and returns a reference to a
-// set from an existing slice.  Operations on the resulting set are
-// not thread-safe.
-func NewThreadUnsafeSetFromSlice(s []interface{}) Set {
-	a := NewThreadUnsafeSet()
-	for _, item := range s {
-		a.Add(item)
+func NewSet[T comparable](vals ...T) Set[T] {
+	s := newThreadSafeSetWithSize[T](len(vals))
+	for _, item := range vals {
+		s.Add(item)
 	}
-	return a
+	return s
+}
+
+// NewSetWithSize creates and returns a reference to an empty set with a specified
+// capacity. Operations on the resulting set are thread-safe.
+func NewSetWithSize[T comparable](cardinality int) Set[T] {
+	s := newThreadSafeSetWithSize[T](cardinality)
+	return s
+}
+
+// NewThreadUnsafeSet creates and returns a new set with the given elements.
+// Operations on the resulting set are not thread-safe.
+func NewThreadUnsafeSet[T comparable](vals ...T) Set[T] {
+	s := newThreadUnsafeSetWithSize[T](len(vals))
+	for _, item := range vals {
+		s.Add(item)
+	}
+	return s
+}
+
+// NewThreadUnsafeSetWithSize creates and returns a reference to an empty set with
+// a specified capacity. Operations on the resulting set are not thread-safe.
+func NewThreadUnsafeSetWithSize[T comparable](cardinality int) Set[T] {
+	s := newThreadUnsafeSetWithSize[T](cardinality)
+	return s
+}
+
+// NewSetFromMapKeys creates and returns a new set with the given keys of the map.
+// Operations on the resulting set are thread-safe.
+func NewSetFromMapKeys[T comparable, V any](val map[T]V) Set[T] {
+	s := NewSetWithSize[T](len(val))
+
+	for k := range val {
+		s.Add(k)
+	}
+
+	return s
+}
+
+// NewThreadUnsafeSetFromMapKeys creates and returns a new set with the given keys of the map.
+// Operations on the resulting set are not thread-safe.
+func NewThreadUnsafeSetFromMapKeys[T comparable, V any](val map[T]V) Set[T] {
+	s := NewThreadUnsafeSetWithSize[T](len(val))
+
+	for k := range val {
+		s.Add(k)
+	}
+
+	return s
 }

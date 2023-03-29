@@ -15,7 +15,7 @@ policy.wasm: $(SOURCE_FILES) go.mod go.sum types_easyjson.go
 		--rm \
 		-e GOFLAGS="-buildvcs=false" \
 		-v ${PWD}:/src \
-		-w /src tinygo/tinygo:0.23.0 \
+		-w /src tinygo/tinygo:0.27.0 \
 		tinygo build -o policy.wasm -target=wasi -no-debug .
 
 artifacthub-pkg.yml: metadata.yml go.mod
@@ -37,6 +37,11 @@ test: types_easyjson.go
 .PHONY: e2e-tests
 e2e-tests: annotated-policy.wasm
 	bats e2e.bats
+
+.PHONY: lint
+lint:
+	go vet ./...
+	golangci-lint run
 
 .PHONY: clean
 clean:
