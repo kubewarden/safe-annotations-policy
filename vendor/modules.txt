@@ -10,15 +10,16 @@ github.com/josharian/intern
 # github.com/kubewarden/gjson v1.7.2
 ## explicit; go 1.12
 github.com/kubewarden/gjson
-# github.com/kubewarden/k8s-objects v1.24.0-kw4
+# github.com/kubewarden/k8s-objects v1.24.0-kw7
 ## explicit; go 1.17
 github.com/kubewarden/k8s-objects/api/apps/v1
 github.com/kubewarden/k8s-objects/api/batch/v1
 github.com/kubewarden/k8s-objects/api/core/v1
 github.com/kubewarden/k8s-objects/apimachinery/pkg/api/resource
 github.com/kubewarden/k8s-objects/apimachinery/pkg/apis/meta/v1
+github.com/kubewarden/k8s-objects/apimachinery/pkg/runtime/schema
 github.com/kubewarden/k8s-objects/apimachinery/pkg/util/intstr
-# github.com/kubewarden/policy-sdk-go v0.3.0
+# github.com/kubewarden/policy-sdk-go v0.4.0
 ## explicit; go 1.20
 github.com/kubewarden/policy-sdk-go
 github.com/kubewarden/policy-sdk-go/constants
