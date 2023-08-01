@@ -114,6 +114,6 @@
   # settings validation fails
   [ "$status" -eq 1 ]
   [ $(expr "$output" : '.*valid.*false') -ne 0 ]
-  [ $(expr "$output" : ".*Provided settings are not valid: Cannot compile regexp.*") -ne 0 ]
+  [ $(expr "$output" : ".*Provided settings are not valid: error parsing regexp: missing closing.*") -ne 0 ]
 }
 
