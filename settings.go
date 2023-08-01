@@ -1,20 +1,56 @@
 package main
 
 import (
-	mapset "github.com/deckarep/golang-set/v2"
-	kubewarden "github.com/kubewarden/policy-sdk-go"
-	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
-	easyjson "github.com/mailru/easyjson"
-
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
+
+	mapset "github.com/deckarep/golang-set/v2"
+	kubewarden "github.com/kubewarden/policy-sdk-go"
+	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
 )
 
+// A wrapper around the standard regexp.Regexp struct
+// that implements marshalling and unmarshalling
+type RegularExpression struct {
+	*regexp.Regexp
+}
+
+// Convenience method to build a regular expression
+func CompileRegularExpression(expr string) (*RegularExpression, error) {
+	nativeRegExp, err := regexp.Compile(expr)
+	if err != nil {
+		return nil, err
+	}
+	return &RegularExpression{nativeRegExp}, nil
+}
+
+// UnmarshalText satisfies the encoding.TextMarshaler interface,
+// also used by json.Unmarshal.
+func (r *RegularExpression) UnmarshalText(text []byte) error {
+	nativeRegExp, err := regexp.Compile(string(text))
+	if err != nil {
+		return err
+	}
+	r.Regexp = nativeRegExp
+	return nil
+}
+
+// MarshalText satisfies the encoding.TextMarshaler interface,
+// also used by json.Marshal.
+func (r *RegularExpression) MarshalText() ([]byte, error) {
+	if r.Regexp != nil {
+		return []byte(r.Regexp.String()), nil
+	}
+
+	return nil, nil
+}
+
 type Settings struct {
-	DeniedAnnotations      mapset.Set[string]        `json:"denied_annotations"`
-	MandatoryAnnotations   mapset.Set[string]        `json:"mandatory_annotations"`
-	ConstrainedAnnotations map[string]*regexp.Regexp `json:"constrained_annotations"`
+	DeniedAnnotations      mapset.Set[string]            `json:"denied_annotations"`
+	MandatoryAnnotations   mapset.Set[string]            `json:"mandatory_annotations"`
+	ConstrainedAnnotations map[string]*RegularExpression `json:"constrained_annotations"`
 }
 
 // Builds a new Settings instance starting from a validation
@@ -28,41 +64,15 @@ type Settings struct {
 //	      "constrained_annotations": { ... }
 //	   }
 //	}
-func NewSettingsFromValidationReq(validationReq kubewarden_protocol.ValidationRequest) (Settings, error) {
-	return newSettings(validationReq.Settings)
-}
+func NewSettingsFromValidationReq(validationRequest kubewarden_protocol.ValidationRequest) (Settings, error) {
+	settings := Settings{}
 
-func newSettings(settingsJson []byte) (Settings, error) {
-	basicSettings := BasicSettings{}
-	err := easyjson.Unmarshal(settingsJson, &basicSettings)
+	err := json.Unmarshal(validationRequest.Settings, &settings)
 	if err != nil {
 		return Settings{}, err
 	}
 
-	deniedAnnotations := mapset.NewThreadUnsafeSet[string]()
-	for _, label := range basicSettings.DeniedAnnotations {
-		deniedAnnotations.Add(label)
-	}
-
-	mandatoryAnnotations := mapset.NewThreadUnsafeSet[string]()
-	for _, label := range basicSettings.MandatoryAnnotations {
-		mandatoryAnnotations.Add(label)
-	}
-
-	constrainedAnnotations := make(map[string]*regexp.Regexp)
-	for name, expr := range basicSettings.ConstrainedAnnotations {
-		reg, err := regexp.Compile(expr)
-		if err != nil {
-			return Settings{}, fmt.Errorf("Cannot compile regexp %s: %v", expr, err)
-		}
-		constrainedAnnotations[name] = reg
-	}
-
-	return Settings{
-		DeniedAnnotations:      deniedAnnotations,
-		MandatoryAnnotations:   mandatoryAnnotations,
-		ConstrainedAnnotations: constrainedAnnotations,
-	}, nil
+	return settings, nil
 }
 
 func (s *Settings) Valid() (bool, error) {
@@ -104,10 +114,40 @@ func (s *Settings) Valid() (bool, error) {
 	return true, nil
 }
 
-func validateSettings(payload []byte) ([]byte, error) {
-	settings, err := newSettings(payload)
+func (s *Settings) UnmarshalJSON(data []byte) error {
+	rawSettings := struct {
+		DeniedAnnotations      []string          `json:"denied_annotations"`
+		MandatoryAnnotations   []string          `json:"mandatory_annotations"`
+		ConstrainedAnnotations map[string]string `json:"constrained_annotations"`
+	}{}
+
+	err := json.Unmarshal(data, &rawSettings)
 	if err != nil {
-		// this happens when one of the user-defined regular expressions are invalid
+		return err
+	}
+
+	s.DeniedAnnotations = mapset.NewThreadUnsafeSet[string](rawSettings.DeniedAnnotations...)
+	s.MandatoryAnnotations = mapset.NewThreadUnsafeSet[string](rawSettings.MandatoryAnnotations...)
+
+	s.ConstrainedAnnotations = make(map[string]*RegularExpression)
+	for key, value := range rawSettings.ConstrainedAnnotations {
+		re, err := CompileRegularExpression(value)
+		if err != nil {
+			return fmt.Errorf("Cannot compile regexp %s: %v", value, err)
+		}
+		s.ConstrainedAnnotations[key] = re
+	}
+
+	return nil
+}
+
+func validateSettings(payload []byte) ([]byte, error) {
+	settings := Settings{}
+
+	err := json.Unmarshal(payload, &settings)
+	if err != nil {
+		// this happens when one the payload cannot be unmarshaled
+		// or one of the user-defined regular expressions is invalid
 		return kubewarden.RejectSettings(
 			kubewarden.Message(fmt.Sprintf("Provided settings are not valid: %v", err)))
 	}
@@ -116,6 +156,7 @@ func validateSettings(payload []byte) ([]byte, error) {
 	if valid {
 		return kubewarden.AcceptSettings()
 	}
+
 	return kubewarden.RejectSettings(
 		kubewarden.Message(fmt.Sprintf("Provided settings are not valid: %v", err)))
 }
