@@ -115,10 +115,12 @@ func (s *Settings) Valid() (bool, error) {
 }
 
 func (s *Settings) UnmarshalJSON(data []byte) error {
+	// This is needed becaus golang-set v2.3.0 has a bug that prevents
+	// the correct unmarshalling of ThreadUnsafeSet types.
 	rawSettings := struct {
-		DeniedAnnotations      []string          `json:"denied_annotations"`
-		MandatoryAnnotations   []string          `json:"mandatory_annotations"`
-		ConstrainedAnnotations map[string]string `json:"constrained_annotations"`
+		DeniedAnnotations      []string                      `json:"denied_annotations"`
+		MandatoryAnnotations   []string                      `json:"mandatory_annotations"`
+		ConstrainedAnnotations map[string]*RegularExpression `json:"constrained_annotations"`
 	}{}
 
 	err := json.Unmarshal(data, &rawSettings)
@@ -128,15 +130,7 @@ func (s *Settings) UnmarshalJSON(data []byte) error {
 
 	s.DeniedAnnotations = mapset.NewThreadUnsafeSet[string](rawSettings.DeniedAnnotations...)
 	s.MandatoryAnnotations = mapset.NewThreadUnsafeSet[string](rawSettings.MandatoryAnnotations...)
-
-	s.ConstrainedAnnotations = make(map[string]*RegularExpression)
-	for key, value := range rawSettings.ConstrainedAnnotations {
-		re, err := CompileRegularExpression(value)
-		if err != nil {
-			return fmt.Errorf("Cannot compile regexp %s: %v", value, err)
-		}
-		s.ConstrainedAnnotations[key] = re
-	}
+	s.ConstrainedAnnotations = rawSettings.ConstrainedAnnotations
 
 	return nil
 }

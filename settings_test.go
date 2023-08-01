@@ -117,7 +117,7 @@ func TestDetectNotValidSettingsDueToBrokenRegexp(t *testing.T) {
 		t.Error("Expected settings to not be valid")
 	}
 
-	if *response.Message != "Provided settings are not valid: Cannot compile regexp cc-[a+: error parsing regexp: missing closing ]: `[a+`" {
+	if *response.Message != "Provided settings are not valid: error parsing regexp: missing closing ]: `[a+`" {
 		t.Errorf("Unexpected validation error message: %s", *response.Message)
 	}
 }
