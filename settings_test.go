@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/mailru/easyjson"
+	"encoding/json"
 
 	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
 )
@@ -18,7 +18,8 @@ func TestParseValidSettings(t *testing.T) {
 		}
 	}`)
 
-	settings, err := newSettings(settingsJSON)
+	settings := Settings{}
+	err := json.Unmarshal(settingsJSON, &settings)
 	if err != nil {
 		t.Errorf("Unexpected error %+v", err)
 	}
@@ -59,7 +60,7 @@ func TestParseSettingsWithInvalidRegexp(t *testing.T) {
 		}
 	}`)
 
-	_, err := newSettings(settingsJSON)
+	err := json.Unmarshal(settingsJSON, &Settings{})
 	if err == nil {
 		t.Errorf("Didn'g get expected error")
 	}
@@ -82,7 +83,7 @@ func TestDetectValidSettings(t *testing.T) {
 	}
 
 	var response kubewarden_protocol.SettingsValidationResponse
-	if err := easyjson.Unmarshal(responsePayload, &response); err != nil {
+	if err := json.Unmarshal(responsePayload, &response); err != nil {
 		t.Errorf("Unexpected error: %+v", err)
 	}
 
@@ -108,7 +109,7 @@ func TestDetectNotValidSettingsDueToBrokenRegexp(t *testing.T) {
 	}
 
 	var response kubewarden_protocol.SettingsValidationResponse
-	if err := easyjson.Unmarshal(responsePayload, &response); err != nil {
+	if err := json.Unmarshal(responsePayload, &response); err != nil {
 		t.Errorf("Unexpected error: %+v", err)
 	}
 
@@ -138,7 +139,7 @@ func TestDetectNotValidSettingsDueToConflictingDeniedAndConstrainedAnnotations(t
 	}
 
 	var response kubewarden_protocol.SettingsValidationResponse
-	if err := easyjson.Unmarshal(responsePayload, &response); err != nil {
+	if err := json.Unmarshal(responsePayload, &response); err != nil {
 		t.Errorf("Unexpected error: %+v", err)
 	}
 
@@ -168,7 +169,7 @@ func TestDetectNotValidSettingsDueToConflictingDeniedAndMandatoryAnnotations(t *
 	}
 
 	var response kubewarden_protocol.SettingsValidationResponse
-	if err := easyjson.Unmarshal(responsePayload, &response); err != nil {
+	if err := json.Unmarshal(responsePayload, &response); err != nil {
 		t.Errorf("Unexpected error: %+v", err)
 	}
 
