@@ -7,7 +7,7 @@
 version: 0.2.9
 name: safe-annotations
 displayName: Safe Annotations
-createdAt: 2023-08-01T08:12:22.889095273Z
+createdAt: 2023-10-16T07:29:03.616871982Z
 description: A policy that validates Kubernetes' resource annotations
 license: Apache-2.0
 homeURL: https://github.com/kubewarden/safe-annotations-policy
@@ -25,6 +25,10 @@ install: |
   The policy can be obtained using [`kwctl`](https://github.com/kubewarden/kwctl):
   ```console
   kwctl pull ghcr.io/kubewarden/policies/safe-annotations:v0.2.9
+  ```
+  Then, generate the policy manifest and tune it to your liking. For example:
+  ```console
+  kwctl scaffold manifest -t ClusterAdmissionPolicy registry://ghcr.io/kubewarden/policies/safe-annotations:v0.2.9
   ```
 maintainers:
 - name: Kubewarden developers
