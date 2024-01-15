@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/kubewarden/gjson v1.7.2
-	github.com/kubewarden/policy-sdk-go v0.5.1
+	github.com/kubewarden/policy-sdk-go v0.5.2
 	github.com/wapc/wapc-guest-tinygo v0.3.3
 )
 
