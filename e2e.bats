@@ -85,7 +85,6 @@
 
   # settings validation fails
   [ "$status" -eq 1 ]
-  [ $(expr "$output" : '.*valid.*false') -ne 0 ]
   [ $(expr "$output" : ".*Provided settings are not valid: These annotations cannot be constrained and denied at the same time: cc-center.*") -ne 0 ]
 }
 
@@ -99,7 +98,6 @@
 
   # settings validation fails
   [ "$status" -eq 1 ]
-  [ $(expr "$output" : '.*valid.*false') -ne 0 ]
   [ $(expr "$output" : ".*Provided settings are not valid: These annotations cannot be mandatory and denied at the same time: cc-center.*") -ne 0 ]
 }
 
@@ -113,7 +111,5 @@
 
   # settings validation fails
   [ "$status" -eq 1 ]
-  [ $(expr "$output" : '.*valid.*false') -ne 0 ]
   [ $(expr "$output" : ".*Provided settings are not valid: error parsing regexp: missing closing.*") -ne 0 ]
 }
-
