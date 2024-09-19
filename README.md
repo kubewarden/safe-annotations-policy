@@ -14,8 +14,8 @@ The policy settings look like that:
 ```yaml
 # List of annotations that cannot be used
 denied_annotations:
-- foo
-- bar
+  - foo
+  - bar
 
 # List of annotations that must be defined
 mandatory_annotations:
@@ -57,19 +57,18 @@ metadata:
   name: minimal-ingress
   annotations:
     cost-center: cc-marketing
-  annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - http:
-      paths:
-      - path: /testpath
-        pathType: Prefix
-        backend:
-          service:
-            name: test
-            port:
-              number: 80
+    - http:
+        paths:
+          - path: /testpath
+            pathType: Prefix
+            backend:
+              service:
+                name: test
+                port:
+                  number: 80
 ```
 
 Policy's settings can also be used to force certain annotations to be specified,
