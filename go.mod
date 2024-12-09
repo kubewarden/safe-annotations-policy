@@ -2,10 +2,10 @@ module github.com/kubewarden/safe-annotations-policy
 
 go 1.22
 
-toolchain go1.23.3
+toolchain go1.23.4
 
 require (
-	github.com/deckarep/golang-set/v2 v2.6.0
+	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/kubewarden/gjson v1.7.2
 	github.com/kubewarden/policy-sdk-go v0.11.0
 	github.com/wapc/wapc-guest-tinygo v0.3.3
