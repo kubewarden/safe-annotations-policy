@@ -2,7 +2,7 @@ module github.com/kubewarden/safe-annotations-policy
 
 go 1.22
 
-toolchain go1.23.6
+toolchain go1.24.1
 
 require (
 	github.com/deckarep/golang-set/v2 v2.7.0
