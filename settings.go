@@ -41,7 +41,7 @@ func (r *RegularExpression) UnmarshalText(text []byte) error {
 // also used by json.Marshal.
 func (r *RegularExpression) MarshalText() ([]byte, error) {
 	if r.Regexp != nil {
-		return []byte(r.Regexp.String()), nil
+		return []byte(r.String()), nil
 	}
 
 	return nil, nil
